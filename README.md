@@ -3,59 +3,6 @@ Este é um projeto backend desenvolvido em **Node.js** usando o framework **Fast
 O sistema é projetado para lidar com **dados sensíveis** de advogados, clientes e documentos jurídicos, garantindo **alta segurança** e **resiliência** contra ataques externos.  
 
 
-
-## 🏗️ **Estrutura de Pastas**
-
-📂 project-root/
-├── 📂 src/  
-│   ├── 📂 config/  
-│   │   ├── logger.ts              # Configuração de logs  
-│   │   ├── rateLimit.ts           # Configuração de limite de requisições  
-│   │   ├── security.ts            # Configurações de segurança (Helmet, CSP, WAF)  
-│   │   ├── swagger.ts             # Configuração do Swagger  
-│   │   └── env.ts                 # Variáveis de ambiente  
-│   │
-│   ├── 📂 modules/  
-│   │   ├── auth/                  # Módulo de autenticação  
-│   │   ├── user/                  # Módulo de usuários  
-│   │   ├── oab/                   # Módulo para integração com a API da OAB  
-│   │   └── datajud/               # Módulo para integração com a API DataJud  
-│   │
-│   ├── 📂 middleware/  
-│   │   ├── authMiddleware.ts      # Middleware de autenticação  
-│   │   ├── errorHandler.ts        # Middleware de tratamento de erros  
-│   │   ├── requestLimiter.ts      # Middleware de limite de requisições  
-│   │   └── securityHeaders.ts     # Middleware de headers de segurança  
-│   │
-│   ├── 📂 utils/  
-│   │   ├── hash.ts                # Função de hashing  
-│   │   ├── jwt.ts                 # Funções para JWT  
-│   │   └── validator.ts           # Validações  
-│   │
-│   ├── 📂 tests/  
-│   │   ├── auth.test.ts           # Testes de autenticação  
-│   │   ├── user.test.ts           # Testes de usuário  
-│   │   ├── oab.test.ts            # Testes da API OAB  
-│   │   └── datajud.test.ts        # Testes da API DataJud  
-│   │
-│   ├── server.ts                  # Arquivo principal (Fastify)  
-│   ├── app.ts                     # Inicialização da aplicação  
-│   └── routes.ts                  # Definição das rotas globais  
-│
-├── 📂 docs/  
-│   ├── api.md                     # Documentação da API  
-│   └── swagger.yaml               # Documentação gerada automaticamente pelo Swagger  
-│
-├── .env                           # Variáveis de ambiente  
-├── .env.example                   # Exemplo de variáveis de ambiente  
-├── .gitignore                     # Arquivos ignorados pelo Git  
-├── README.md                      # Documentação principal  
-├── package.json                   # Configuração de dependências  
-└── tsconfig.json                  # Configuração do TypeScript  
-
-
----
-
 ## 🛠️ **Instalação**
 1. Clone o repositório:  
 
@@ -178,8 +125,6 @@ async function setupSwagger(fastify) {
 
 ## 👨‍💻 **Contribuição**
 Se você deseja contribuir, abra um **Pull Request** ou reporte um bug em **Issues**.
-
----
 
 ## 📜 **Licença**
 Este projeto está licenciado sob a licença **MIT**.
