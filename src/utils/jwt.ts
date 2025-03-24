@@ -26,7 +26,7 @@ export function generateTokens(fastify: FastifyInstance, payload: TokenPayload) 
 export function verifyRefreshToken(fastify: FastifyInstance, token: string) {
   try {
     const decoded = fastify.jwt.verify(token);  // Não passe 'jti' aqui
-    if (decoded.jti !== 'refresh') {
+    if ((decoded as JwtPayload).jti !== 'refresh') {
       throw new Error('Invalid JWT ID');
     }
     return decoded;

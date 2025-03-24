@@ -3,6 +3,7 @@ import { buildApp } from '../app';
 import { User } from '../modules/user/user.model';
 import mongoose from 'mongoose';
 import axios from 'axios';
+import { jest } from '@jest/globals';
 
 // Mock axios
 jest.mock('axios');
