@@ -1,41 +1,43 @@
-import Fastify, { FastifyInstance } from 'fastify';
-import cors from '@fastify/cors';
-import helmet from '@fastify/helmet';
-import jwt from '@fastify/jwt';
-import rateLimit from '@fastify/rate-limit';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
 
-import { logger } from './config/logger';
-import { env } from './config/env';
-import { securityConfig } from './config/security';
-import { rateLimitConfig } from './config/rateLimit';
-import { setupSwagger } from './config/swagger';
-import { errorHandler } from './middleware/errorHandler';
-import { routes } from './routes';
 
-export async function buildApp(): Promise<FastifyInstance> {
-  const app = Fastify({
-    logger
+import userRoutes from './routes/userRoutes';
+import authRoutes from './routes/authRoutes';
+import { connectToDatabase } from './config/dataBase';
+
+dotenv.config(); // Carrega variáveis do .env
+
+const app = express();
+
+// Segurança
+app.use(helmet()); // Protege contra cabeçalhos maliciosos
+app.use(cors()); // Permite acesso de outros domínios
+app.use(express.json()); // Suporte para JSON
+
+
+// Rate limiting para evitar brute-force e abuso
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100, // máximo de 100 requisições por IP
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
+
+// Rotas
+app.use('/api', userRoutes);
+app.use('/api/auth', authRoutes);
+
+// Inicialização do servidor
+const PORT = process.env.PORT || 3000;
+connectToDatabase().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
   });
+});
 
-  // Register plugins
-  await app.register(cors, securityConfig.cors);
-  await app.register(helmet, securityConfig.helmet);
-  await app.register(jwt, {
-    secret: env.JWT_SECRET,
-    sign: {
-      expiresIn: env.JWT_EXPIRES_IN
-    }
-  });
-  await app.register(rateLimit, rateLimitConfig);
-
-  // Setup Swagger documentation
-  await setupSwagger(app);
-
-  // Register error handler
-  app.setErrorHandler(errorHandler);
-
-  // Register routes
-  app.register(routes);
-
-  return app;
-}
+export default app;

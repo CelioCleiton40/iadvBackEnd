@@ -1,43 +1,44 @@
-# Dependencies
+# Dependências e pacotes
 node_modules/
 npm-debug.log
 yarn-debug.log
 yarn-error.log
+.pnpm-debug.log
 
-# Environment variables
+# Ambiente de Desenvolvimento
 .env
 .env.local
 .env.*.local
 
-# Build output
-dist/
-build/
-coverage/
-
-# Logs
+# Logs e Dados Temporários
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+coverage/
 
-# Editor directories and files
-.idea/
-.vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# OS files
+# Sistemas Operacionais
 .DS_Store
 Thumbs.db
 
-# Testing
-coverage/
-.nyc_output/
+# TypeScript
+dist/
+build/
+*.tsbuildinfo
 
-# Temporary files
-tmp/
-temp/
+# IDEs e Editores
+.vscode/
+.idea/
+*.code-workspace
+
+# Ferramentas de Teste
+.nyc_output/
+jest-*.json
+
+# Arquivos Binários ou Compactados
+*.zip
+*.rar
+*.tar.gz
+
+# Outros
+*.tmp
+*.swp
+*.bak
