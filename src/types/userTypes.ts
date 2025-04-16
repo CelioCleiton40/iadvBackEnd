@@ -18,3 +18,5 @@ export interface User {
     id: string;
     email: string;
   }
+
+  export type UserRole = "advogado" | "procuradoria" | "magistrado";

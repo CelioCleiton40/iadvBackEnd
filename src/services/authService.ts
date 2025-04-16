@@ -1,5 +1,5 @@
 import { client } from '../config/dataBase';
-import { hashPassword, comparePasswords } from '../security/encryption';
+import { comparePasswords } from '../security/encryption';
 import { generateToken } from '../security/jwt';
 
 

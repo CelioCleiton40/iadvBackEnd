@@ -1,12 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyToken } from "../security/jwt";
+import { verifyToken, UserPayload } from "../security/jwt"; // reaproveitando o tipo
 
 export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    role: "advogado" | "procuradoria" | "magistrado";
-    email: string;
-  };
+  user?: UserPayload; // usa a interface já existente
 }
 
 export const authMiddleware = (
@@ -17,17 +13,19 @@ export const authMiddleware = (
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith("Bearer ")) {
-res.status(401).json({ error: "Token ausente ou inválido." });
-return;
+    res.status(401).json({ error: "Token ausente ou malformado." });
+    return;
   }
 
   const token = authHeader.split(" ")[1];
 
   try {
     const decoded = verifyToken(token);
-    req.user = decoded as { id: string; role: "advogado" | "procuradoria" | "magistrado"; email: string }; // já validado via JWT
+    req.user = decoded as UserPayload; // payload já validado
     next();
-  } catch (error) {
-    res.status(403).json({ error: "Token inválido ou expirado." });
+  } catch (error: any) {
+    res.status(403).json({
+      error: error.message || "Token inválido ou expirado."
+    });
   }
 };

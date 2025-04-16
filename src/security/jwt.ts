@@ -1,6 +1,13 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { JWT_SECRET } from '../config/env';
+import { UserRole } from '../types/userTypes';
 
+
+export interface UserPayload extends JwtPayload {
+  id: string;
+  email: string;
+  role?: UserRole;
+}
 // Gera um token JWT válido por 1 hora
 export const generateToken = (payload: object): string => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });

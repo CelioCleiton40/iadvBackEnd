@@ -8,6 +8,7 @@
       "skipLibCheck": true,
       "outDir": "./dist",
       "rootDir": "./src",
+      "typeRoots": ["./node_modules/@types", "./src/types"],
       "resolveJsonModule": true,
       "strictPropertyInitialization": false
     },
