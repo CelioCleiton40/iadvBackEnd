@@ -6,22 +6,29 @@ import logger from '../utils/logger';
 
 const COLLECTION_NAME = 'userProfiles';
 
+// Validação reforçada do ID do usuário
 const validateUserId = (userId: string) => {
   if (typeof userId !== 'string' || userId.trim().length === 0) {
     throw new Error('ID de usuário inválido.');
   }
+
+  if (!ObjectId.isValid(userId)) {
+     throw new Error('Formato de ID inválido.');
+  }
 };
 
+// Sanitiza dados antes da validação
 const sanitizeUserData = (data: Partial<IUserProfile>) => ({
   ...data,
-  nomeCompleto: data.nomeCompleto?.trim(),
+  nomeCompleto: data.nomeCompleto?.trim().replace(/\s+/g, ' '),
   email: data.email?.trim().toLowerCase(),
   cpf: data.cpf?.replace(/\D/g, ''),
   telefone: data.telefone?.replace(/\D/g, ''),
 });
 
+// Valida os dados do perfil e evita campos perigosos
 const validateAndSanitizeUserProfile = (data: Partial<IUserProfile>) => {
-  delete (data as any).userId; // Proteção extra
+  delete (data as any).userId; // Bloqueia tentativa de sobrescrever userId
 
   const cleanData = sanitizeUserData(data);
   const parsed = advogadoSchema.safeParse(cleanData);
@@ -40,17 +47,27 @@ const validateAndSanitizeUserProfile = (data: Partial<IUserProfile>) => {
   return parsed.data;
 };
 
+// Busca perfil por userId
 export const getProfileByUserId = async (userId: string) => {
   try {
     validateUserId(userId);
     const db = await connectToDatabase();
-    return await db.collection(COLLECTION_NAME).findOne({ userId }) || null;
+    const profile = await db.collection(COLLECTION_NAME).findOne({ userId });
+
+    // Retorna perfil com dados mascarados para segurança
+    if (profile) {
+      profile.cpf = profile.cpf?.replace(/(\d{3})\d{6}(\d{2})/, '$1******$2');
+      profile.telefone = profile.telefone?.replace(/(\d{2})\d{5}(\d{4})/, '($1) *****-$2');
+    }
+
+    return profile || null;
   } catch (error) {
     logger.error('Erro ao buscar perfil do usuário:', error);
     throw new Error('Erro ao buscar o perfil do usuário.');
   }
 };
 
+// Cria ou atualiza perfil de forma segura
 export const createOrUpdateProfile = async (userId: string, data: Partial<IUserProfile>) => {
   try {
     validateUserId(userId);
@@ -85,6 +102,7 @@ export const createOrUpdateProfile = async (userId: string, data: Partial<IUserP
   }
 };
 
+// Exclui perfil
 export const deleteProfile = async (userId: string) => {
   try {
     validateUserId(userId);
