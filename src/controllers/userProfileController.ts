@@ -23,7 +23,7 @@ export const fetchProfile = async (req: AuthenticatedRequest, res: Response) => 
 // Cria ou atualiza o perfil do usuário logado
 export const updateProfile = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user?.id;
-  if (!userId) return res.status(401).json({ message: 'Não autorizado.' });
+  if (!userId) return res.status(401).json({ message: 'Não autorizadoW.' });
 
   try {
     const profile = await createOrUpdateProfile(userId, req.body);

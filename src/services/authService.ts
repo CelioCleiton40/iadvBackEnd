@@ -28,12 +28,13 @@ export const loginUser = async (email: string, password: string) => {
     }
 
     // Gera o token JWT
-    const token = generateToken({ userId: user._id?.toString(), role: user.role });
+    const token = generateToken({ id: user._id?.toString(), email: user.email, role: user.role });
 
     // Retorna o token e os dados do usuário (sem a senha)
     return {
       token,
       user: {
+        id: user._id?.toString(),
         email: user.email,
         role: user.role,
         createdAt: user.createdAt,

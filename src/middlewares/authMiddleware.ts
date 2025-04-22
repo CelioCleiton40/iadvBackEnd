@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyToken, UserPayload } from "../security/jwt"; // reaproveitando o tipo
+import { verifyToken, UserPayload } from "../security/jwt";
 
 export interface AuthenticatedRequest extends Request {
-  user?: UserPayload; // usa a interface já existente
+  user?: UserPayload;
 }
 
 export const authMiddleware = (
@@ -12,8 +12,8 @@ export const authMiddleware = (
 ): void => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader?.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Token ausente ou malformado." });
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    res.status(401).json({ error: "Acesso não autorizado: token ausente ou malformado." });
     return;
   }
 
@@ -21,11 +21,17 @@ export const authMiddleware = (
 
   try {
     const decoded = verifyToken(token);
-    req.user = decoded as UserPayload; // payload já validado
+
+    // Verificação adicional de estrutura do payload
+    if (!decoded?.userId || !decoded?.email) {
+      res.status(403).json({ error: "Token inválido: informações incompletas." });
+      return;
+    }
+
+    req.user = decoded;
     next();
-  } catch (error: any) {
-    res.status(403).json({
-      error: error.message || "Token inválido ou expirado."
-    });
+  } catch (err) {
+    console.warn("[AuthMiddleware] Falha ao verificar token:", err instanceof Error ? err.message : err);
+    res.status(403).json({ error: "Acesso negado: token inválido ou expirado." });
   }
 };
