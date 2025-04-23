@@ -32,7 +32,7 @@ export const registerUser = async (
 
   // Gera token com os campos exigidos pela interface UserPayload
   const token = generateToken({
-    id: result.insertedId.toString(),
+    userId: result.insertedId.toString(),
     email: userData.email,
     role: userData.role as UserRole // ou outro valor padrão
   });

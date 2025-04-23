@@ -6,28 +6,43 @@ import logger from '../utils/logger';
 
 const COLLECTION_NAME = 'userProfiles';
 
-// Validação reforçada do ID do usuário
-const validateUserId = (userId: string) => {
+/**
+ * Validação reforçada do ID do usuário.
+ * @param userId - ID do usuário a ser validado.
+ * @throws Erro se o ID for inválido ou malformado.
+ */
+const validateUserId = (userId: string): void => {
   if (typeof userId !== 'string' || userId.trim().length === 0) {
+    console.warn("[validateUserId] ID de usuário inválido:", userId);
     throw new Error('ID de usuário inválido.');
   }
 
   if (!ObjectId.isValid(userId)) {
-     throw new Error('Formato de ID inválido.');
+    console.warn("[validateUserId] Formato de ID inválido:", userId);
+    throw new Error('Formato de ID inválido.');
   }
 };
 
-// Sanitiza dados antes da validação
-const sanitizeUserData = (data: Partial<IUserProfile>) => ({
+/**
+ * Sanitiza dados antes da validação para evitar problemas de formatação.
+ * @param data - Dados brutos do perfil.
+ * @returns Dados sanitizados.
+ */
+const sanitizeUserData = (data: Partial<IUserProfile>): Partial<IUserProfile> => ({
   ...data,
-  nomeCompleto: data.nomeCompleto?.trim().replace(/\s+/g, ' '),
-  email: data.email?.trim().toLowerCase(),
-  cpf: data.cpf?.replace(/\D/g, ''),
-  telefone: data.telefone?.replace(/\D/g, ''),
+  nomeCompleto: data.nomeCompleto?.trim().replace(/\s+/g, ' '), // Remove espaços extras
+  email: data.email?.trim().toLowerCase(), // Normaliza o email
+  cpf: data.cpf?.replace(/\D/g, ''), // Remove caracteres não numéricos
+  telefone: data.telefone?.replace(/\D/g, '') // Remove caracteres não numéricos
 });
 
-// Valida os dados do perfil e evita campos perigosos
-const validateAndSanitizeUserProfile = (data: Partial<IUserProfile>) => {
+/**
+ * Valida e sanitiza os dados do perfil.
+ * @param data - Dados brutos do perfil.
+ * @returns Dados validados e sanitizados.
+ * @throws Erro de validação com detalhes sobre os campos inválidos.
+ */
+const validateAndSanitizeUserProfile = (data: Partial<IUserProfile>): Partial<IUserProfile> => {
   delete (data as any).userId; // Bloqueia tentativa de sobrescrever userId
 
   const cleanData = sanitizeUserData(data);
@@ -47,28 +62,39 @@ const validateAndSanitizeUserProfile = (data: Partial<IUserProfile>) => {
   return parsed.data;
 };
 
-// Busca perfil por userId
-export const getProfileByUserId = async (userId: string) => {
+/**
+ * Busca o perfil do usuário pelo ID.
+ * @param userId - ID do usuário.
+ * @returns Perfil do usuário ou null se não encontrado.
+ * @throws Erro em caso de falha ao acessar o banco de dados.
+ */
+export const getProfileByUserId = async (userId: string): Promise<IUserProfile | null> => {
   try {
     validateUserId(userId);
     const db = await connectToDatabase();
-    const profile = await db.collection(COLLECTION_NAME).findOne({ userId });
+    const profile = await db.collection(COLLECTION_NAME).findOne<IUserProfile>({ userId });
 
     // Retorna perfil com dados mascarados para segurança
     if (profile) {
-      profile.cpf = profile.cpf?.replace(/(\d{3})\d{6}(\d{2})/, '$1******$2');
-      profile.telefone = profile.telefone?.replace(/(\d{2})\d{5}(\d{4})/, '($1) *****-$2');
+      profile.cpf = profile.cpf?.replace(/(\d{3})\d{6}(\d{2})/, '$1******$2'); // Mascarar CPF
+      profile.telefone = profile.telefone?.replace(/(\d{2})\d{5}(\d{4})/, '($1) *****-$2'); // Mascarar telefone
     }
 
     return profile || null;
   } catch (error) {
-    logger.error('Erro ao buscar perfil do usuário:', error);
+    logger.error('[getProfileByUserId] Erro ao buscar perfil:', error);
     throw new Error('Erro ao buscar o perfil do usuário.');
   }
 };
 
-// Cria ou atualiza perfil de forma segura
-export const createOrUpdateProfile = async (userId: string, data: Partial<IUserProfile>) => {
+/**
+ * Cria ou atualiza o perfil do usuário.
+ * @param userId - ID do usuário.
+ * @param data - Dados do perfil a serem criados ou atualizados.
+ * @returns Perfil criado ou atualizado.
+ * @throws Erro em caso de falha na validação ou acesso ao banco de dados.
+ */
+export const createOrUpdateProfile = async (userId: string, data: Partial<IUserProfile>): Promise<IUserProfile | null> => {
   try {
     validateUserId(userId);
 
@@ -96,21 +122,26 @@ export const createOrUpdateProfile = async (userId: string, data: Partial<IUserP
 
     return result?.value || null;
   } catch (error: any) {
-    logger.error('Erro ao criar ou atualizar o perfil:', error);
+    logger.error('[createOrUpdateProfile] Erro ao criar/atualizar perfil:', error);
     if (error.details) throw error;
     throw new Error('Erro ao processar os dados do perfil.');
   }
 };
 
-// Exclui perfil
-export const deleteProfile = async (userId: string) => {
+/**
+ * Exclui o perfil do usuário.
+ * @param userId - ID do usuário.
+ * @returns True se o perfil foi excluído, false caso contrário.
+ * @throws Erro em caso de falha ao acessar o banco de dados.
+ */
+export const deleteProfile = async (userId: string): Promise<boolean> => {
   try {
     validateUserId(userId);
     const db = await connectToDatabase();
     const result = await db.collection(COLLECTION_NAME).deleteOne({ userId });
     return result.deletedCount > 0;
   } catch (error) {
-    logger.error('Erro ao excluir perfil do usuário:', error);
+    logger.error('[deleteProfile] Erro ao excluir perfil:', error);
     throw new Error('Erro ao excluir o perfil do usuário.');
   }
 };
