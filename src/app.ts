@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { setupSecurity } from './middlewares/securityMiddleware';
 import { connectToDatabase } from './config/dataBase';
+import settingsRoutes from './routes/settingsRoutes';
 import userRoutes from './routes/userRoutes';
 import authRoutes from './routes/authRoutes';
 import userProfileRoutes from './routes/userProfileRoutes';
@@ -19,6 +20,9 @@ app.use(express.json()); // Suporte para JSON
 
 // Rate limiting para evitar brute-force e abuso
 setupSecurity(app); // Middlewares de segurança personalizados
+
+// Registro das rotas de configurações
+app.use("/api", settingsRoutes);
 
 // Rotas
 app.use('/api', userRoutes);
