@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
+
+
 export const userProfileSchema = z.object({
-  userId: z.string().min(1, 'UserId é obrigatório'),
+  _id: z.string().min(1, '_id é obrigatório'), // Substitui userId por _id
   nomeCompleto: z.string().min(1, 'Nome completo é obrigatório').trim(),
   cpf: z.string().min(11).max(14).regex(/^\d{11}$/, 'CPF inválido'),
   email: z.string().email().trim().toLowerCase(),
@@ -17,5 +19,3 @@ export const userProfileSchema = z.object({
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional()
 }).strict();
-
-export type UserProfile = z.infer<typeof userProfileSchema>;

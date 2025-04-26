@@ -13,12 +13,12 @@ const COLLECTION_NAME = 'userProfiles';
  */
 const validateUserId = (userId: string): void => {
   if (typeof userId !== 'string' || userId.trim().length === 0) {
-    console.warn("[validateUserId] ID de usuário inválido:", userId);
+    logger.warn("[validateUserId] ID de usuário inválido:", userId);
     throw new Error('ID de usuário inválido.');
   }
 
   if (!ObjectId.isValid(userId)) {
-    console.warn("[validateUserId] Formato de ID inválido:", userId);
+    logger.warn("[validateUserId] Formato de ID inválido:", userId);
     throw new Error('Formato de ID inválido.');
   }
 };
@@ -63,7 +63,7 @@ const validateAndSanitizeUserProfile = (data: Partial<IUserProfile>): Partial<IU
 };
 
 /**
- * Busca o perfil do usuário pelo ID.
+ * Busca o perfil do usuário pelo ID do usuário.
  * @param userId - ID do usuário.
  * @returns Perfil do usuário ou null se não encontrado.
  * @throws Erro em caso de falha ao acessar o banco de dados.
@@ -107,10 +107,11 @@ export const createOrUpdateProfile = async (userId: string, data: Partial<IUserP
       {
         $set: {
           ...validatedData,
+          userId, // Garante que o userId esteja sempre presente
           atualizadoEm: now
         },
         $setOnInsert: {
-          userId,
+          profileId: new ObjectId(), // Cria um profileId único
           criadoEm: now
         }
       },
@@ -119,8 +120,12 @@ export const createOrUpdateProfile = async (userId: string, data: Partial<IUserP
         returnDocument: 'after'
       }
     );
+    if (!result) {
+      logger.warn("[createOrUpdateProfile] Nenhum perfil encontrado ou atualizado:", userId);
+      throw new Error('Nenhum perfil encontrado ou atualizado.');
+    }
 
-    return result?.value || null;
+    return result as unknown as IUserProfile;
   } catch (error: any) {
     logger.error('[createOrUpdateProfile] Erro ao criar/atualizar perfil:', error);
     if (error.details) throw error;
@@ -143,5 +148,34 @@ export const deleteProfile = async (userId: string): Promise<boolean> => {
   } catch (error) {
     logger.error('[deleteProfile] Erro ao excluir perfil:', error);
     throw new Error('Erro ao excluir o perfil do usuário.');
+  }
+};
+
+/**
+ * Busca o perfil do usuário pelo profileId.
+ * @param profileId - ID do perfil.
+ * @returns Perfil do usuário ou null se não encontrado.
+ * @throws Erro em caso de falha ao acessar o banco de dados.
+ */
+export const getProfileByProfileId = async (profileId: string): Promise<IUserProfile | null> => {
+  try {
+    if (!ObjectId.isValid(profileId)) {
+      logger.warn("[getProfileByProfileId] ID de perfil inválido:", profileId);
+      throw new Error('ID de perfil inválido.');
+    }
+
+    const db = await connectToDatabase();
+    const profile = await db.collection(COLLECTION_NAME).findOne<IUserProfile>({ profileId: new ObjectId(profileId) });
+
+    // Retorna perfil com dados mascarados para segurança
+    if (profile) {
+      profile.cpf = profile.cpf?.replace(/(\d{3})\d{6}(\d{2})/, '$1******$2'); // Mascarar CPF
+      profile.telefone = profile.telefone?.replace(/(\d{2})\d{5}(\d{4})/, '($1) *****-$2'); // Mascarar telefone
+    }
+
+    return profile || null;
+  } catch (error) {
+    logger.error('[getProfileByProfileId] Erro ao buscar perfil:', error);
+    throw new Error('Erro ao buscar o perfil do usuário.');
   }
 };

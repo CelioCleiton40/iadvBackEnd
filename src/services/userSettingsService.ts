@@ -36,8 +36,9 @@ export const createOrUpdateUserSettings = async (userId: string, settings: Parti
         returnDocument: "after" // Retorna o documento atualizado
       }
     );
+    
 
-    return result?.value || null;
+    return ; // Retorna as configurações atualizadas ou o documento inserido
   } catch (error) {
     console.error("[createOrUpdateUserSettings] Erro ao salvar configurações:", error);
     throw new Error("Erro ao processar as configurações.");
