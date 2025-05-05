@@ -16,8 +16,10 @@ const app = express();
 // Segurança
 app.use(helmet()); // Protege contra cabeçalhos maliciosos
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: "http://10.0.0.159:3000",
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 })); // Permite acesso de outros domínios
 app.use(express.json()); // Suporte para JSON
 

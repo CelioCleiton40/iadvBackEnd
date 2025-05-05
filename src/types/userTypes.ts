@@ -7,7 +7,7 @@ export interface User {
   }
   
   export interface CreateUserInput {
-    fistName: string;
+    firstName: string;
     lastName?: string;
     email: string;
     password: string;

@@ -99,7 +99,7 @@ export const advogadoSchema = z.object({
 });
 
 export const validateRegisterUser = (user: User): string | null => {
-  if (!user.fistName.trim()) return "O nome é obrigatório.";
+  if (!user.firstName.trim()) return "O nome é obrigatório.";
   if (!user.lastName?.trim()) return "O sobrenome é obrigatório.";
   if (!user.email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
     return "O e-mail fornecido é inválido.";
