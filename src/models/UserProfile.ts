@@ -43,7 +43,7 @@ export class UserProfileModel {
         }
       );
 
-      return result.value || null;
+      return result || null;
     } catch (error) {
       console.error("[UserProfileModel] Erro ao criar/atualizar perfil:", error);
       throw new Error("Erro ao criar ou atualizar o perfil do usuário.");
