@@ -1,4 +1,4 @@
-import { JuizData } from '../types/judgeTypes';
+import { JuizData } from '../../types/judgeTypes';
 
 const juizesDB: Record<string, JuizData> = {};
 

@@ -1,5 +1,5 @@
 import * as cron from 'node-cron';
-import { NotificationService } from '../services/notificationService';
+import { NotificationService } from '../services/dashboard/notificationService';
 
 export class NotificationScheduler {
   private notificationService: NotificationService;

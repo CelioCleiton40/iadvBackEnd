@@ -1,19 +1,19 @@
-import { NotificationRepository } from "../repositories/notificationRepository";
-import { AppointmentRepository } from "../repositories/AppointmentRepository"; // Corrigido nome do arquivo para minúsculo inicial
-import { AppNotification, NotificationInput } from "../models/dashboard/notificationModel";
-import { Appointment } from "../models/dashboard/appointmentModel";
+import { NotificationRepository } from "../../repositories/notificationRepository";
+import { AppointmentRepository } from "../../repositories/AppointmentRepository"; // Corrigido nome do arquivo para minúsculo inicial
+import { AppNotification, NotificationInput } from "../../models/dashboard/notificationModel";
+import { Appointment } from "../../models/dashboard/appointmentModel";
 import {
   NOTIFICATION_TEMPLATES,
   NOTIFICATION_SETTINGS,
   NotificationTemplate
-} from "../config/notificationConfig";
+} from "../../config/notificationConfig";
 import {
   NotificationProvider,
   EmailProvider,
   SMSProvider,
   PushProvider
 } from "./notificationProviders";
-import { AppNotificationn } from "../types/notificationType"; // Verificar se "AppNotificationn" com dois 'n' está correto
+import { AppNotificationn } from "../../types/notificationType"; // Verificar se "AppNotificationn" com dois 'n' está correto
 
 export class NotificationService {
   private notificationRepository = new NotificationRepository();

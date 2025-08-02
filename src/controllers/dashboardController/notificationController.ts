@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { NotificationService } from "../services/notificationService";
-import { AppointmentService } from "../services/appointmentService";
+import { NotificationService } from "../../services/dashboard/notificationService";
+import { AppointmentService } from "../../services/dashboard/appointmentService";
 
 export class NotificationController {
   private notificationService: NotificationService;

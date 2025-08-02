@@ -1,5 +1,5 @@
-import { AppointmentRepository } from "../repositories/AppointmentRepository";
-import { Appointment, AppointmentInput, appointmentSchema } from "../models/dashboard/appointmentModel";
+import { AppointmentRepository } from "../../repositories/AppointmentRepository";
+import { Appointment, AppointmentInput, appointmentSchema } from "../../models/dashboard/appointmentModel";
 
 export class AppointmentService {
   private appointmentRepository: AppointmentRepository;

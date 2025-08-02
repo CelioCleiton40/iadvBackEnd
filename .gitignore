@@ -9,6 +9,9 @@ yarn-error.log
 .env
 .env.local
 .env.*.local
+.env.test
+.env.production
+.env.development
 
 # Logs e Dados Temporários
 logs/
@@ -37,6 +40,19 @@ jest-*.json
 *.zip
 *.rar
 *.tar.gz
+
+# Scripts Sensíveis e Dados Privados
+scripts/
+*.private.js
+*.secret.*
+data/
+database/
+backups/
+
+# Configurações Específicas do Projeto
+config/local.*
+config/production.*
+config/secrets.*
 
 # Outros
 *.tmp

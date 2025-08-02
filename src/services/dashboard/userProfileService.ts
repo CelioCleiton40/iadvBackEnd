@@ -1,8 +1,8 @@
-import { connectToDatabase } from '../config/dataBase';
+import { connectToDatabase } from '../../config/dataBase';
 import { ObjectId } from 'mongodb';
-import { IUserProfile } from '../types/userProfile.types';
-import { advogadoSchema } from '../utils/validation';
-import logger from '../utils/logger';
+import { IUserProfile } from '../../types/userProfile.types';
+import { userProfileSchema, updateUserProfileSchema, UserProfileInput, UpdateUserProfileInput } from '../../schemas/userProfile';
+import logger from '../../utils/logger';
 
 const COLLECTION_NAME = 'userProfiles';
 
@@ -23,30 +23,25 @@ const validateUserId = (userId: string): void => {
   }
 };
 
-/**
- * Sanitiza dados antes da validação para evitar problemas de formatação.
- * @param data - Dados brutos do perfil.
- * @returns Dados sanitizados.
- */
-const sanitizeUserData = (data: Partial<IUserProfile>): Partial<IUserProfile> => ({
-  ...data,
-  nomeCompleto: data.nomeCompleto?.trim().replace(/\s+/g, ' '), // Remove espaços extras
-  email: data.email?.trim().toLowerCase(), // Normaliza o email
-  cpf: data.cpf?.replace(/\D/g, ''), // Remove caracteres não numéricos
-  telefone: data.telefone?.replace(/\D/g, '') // Remove caracteres não numéricos
-});
+// Rick's comment: Função sanitizeUserData removida - agora o Zod faz isso automaticamente com transforms
 
 /**
  * Valida e sanitiza os dados do perfil.
+ * Rick's comment: Validação que funciona de verdade, não essa bagunça anterior.
  * @param data - Dados brutos do perfil.
+ * @param isUpdate - Se é uma atualização parcial ou criação completa.
  * @returns Dados validados e sanitizados.
  * @throws Erro de validação com detalhes sobre os campos inválidos.
  */
-const validateAndSanitizeUserProfile = (data: Partial<IUserProfile>): Partial<IUserProfile> => {
-  delete (data as any).userId; // Bloqueia tentativa de sobrescrever userId
+const validateAndSanitizeUserProfile = (data: Partial<IUserProfile>, isUpdate: boolean = false): UserProfileInput | UpdateUserProfileInput => {
+  // Rick's comment: Remove campos que não devem ser alterados pelo usuário
+  delete (data as any).userId;
+  delete (data as any)._id;
+  delete (data as any).createdAt;
+  delete (data as any).updatedAt;
 
-  const cleanData = sanitizeUserData(data);
-  const parsed = advogadoSchema.safeParse(cleanData);
+  const schema = isUpdate ? updateUserProfileSchema : userProfileSchema;
+  const parsed = schema.safeParse(data);
 
   if (!parsed.success) {
     const details = parsed.error.errors.map(e => ({
@@ -54,6 +49,7 @@ const validateAndSanitizeUserProfile = (data: Partial<IUserProfile>): Partial<IU
       message: e.message
     }));
 
+    logger.warn(`[validateAndSanitizeUserProfile] Erro de validação:`, details);
     const validationError = new Error('Erro de validação');
     (validationError as any).details = details;
     throw validationError;
@@ -89,6 +85,7 @@ export const getProfileByUserId = async (userId: string): Promise<IUserProfile |
 
 /**
  * Cria ou atualiza o perfil do usuário.
+ * Rick's comment: Upsert que funciona de verdade, com validação e tudo mais.
  * @param userId - ID do usuário.
  * @param data - Dados do perfil a serem criados ou atualizados.
  * @returns Perfil criado ou atualizado.
@@ -97,22 +94,30 @@ export const getProfileByUserId = async (userId: string): Promise<IUserProfile |
 export const createOrUpdateProfile = async (userId: string, data: Partial<IUserProfile>): Promise<IUserProfile | null> => {
   try {
     validateUserId(userId);
+    logger.info(`[createOrUpdateProfile] Iniciando criação/atualização do perfil para userId: ${userId}`);
 
-    const validatedData = validateAndSanitizeUserProfile(data);
+    // Rick's comment: Verifica se é atualização (perfil já existe)
     const db = await connectToDatabase();
-    const now = new Date();
+    const existingProfile = await db.collection(COLLECTION_NAME).findOne({ userId });
+    const isUpdate = !!existingProfile;
+
+    const validatedData = validateAndSanitizeUserProfile(data, isUpdate);
+    const now = new Date().toISOString();
+
+    const updateData: any = {
+      ...validatedData,
+      userId, // Rick's comment: Garante que o userId esteja sempre presente
+      updatedAt: now
+    };
 
     const result = await db.collection(COLLECTION_NAME).findOneAndUpdate(
       { userId },
       {
-        $set: {
-          ...validatedData,
-          userId, // Garante que o userId esteja sempre presente
-          atualizadoEm: now
-        },
+        $set: updateData,
         $setOnInsert: {
-          profileId: new ObjectId(), // Cria um profileId único
-          criadoEm: now
+          _id: new ObjectId(),
+          profileId: new ObjectId(), // Rick's comment: ID único para busca pública
+          createdAt: now
         }
       },
       {
@@ -120,15 +125,27 @@ export const createOrUpdateProfile = async (userId: string, data: Partial<IUserP
         returnDocument: 'after'
       }
     );
+
     if (!result) {
-      logger.warn("[createOrUpdateProfile] Nenhum perfil encontrado ou atualizado:", userId);
-      throw new Error('Nenhum perfil encontrado ou atualizado.');
+      logger.error(`[createOrUpdateProfile] Falha ao criar/atualizar perfil para userId: ${userId}`);
+      throw new Error('Falha ao processar o perfil.');
     }
 
-    return result as unknown as IUserProfile;
+    logger.info(`[createOrUpdateProfile] Perfil ${isUpdate ? 'atualizado' : 'criado'} com sucesso para userId: ${userId}`);
+    
+    // Rick's comment: Remove dados sensíveis antes de retornar
+    const profileToReturn = result as unknown as IUserProfile;
+    if (profileToReturn.cpf) {
+      profileToReturn.cpf = profileToReturn.cpf.replace(/(\d{3})\d{6}(\d{2})/, '$1******$2');
+    }
+    if (profileToReturn.telefone) {
+      profileToReturn.telefone = profileToReturn.telefone.replace(/(\d{2})\d{5}(\d{4})/, '($1) *****-$2');
+    }
+
+    return profileToReturn;
   } catch (error: any) {
     logger.error('[createOrUpdateProfile] Erro ao criar/atualizar perfil:', error);
-    if (error.details) throw error;
+    if (error.details) throw error; // Rick's comment: Repassa erros de validação
     throw new Error('Erro ao processar os dados do perfil.');
   }
 };

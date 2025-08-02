@@ -16,6 +16,64 @@ O **iAdv BackEnd** é a camada de API responsável por fornecer endpoints RESTfu
 
 ---
 
+## 📊 Dados Extraídos
+
+### 📈 TRF5 (Tribunal Regional Federal da 5ª Região)
+- **24 desembargadores** federais
+- **Localização**: Recife/PE (jurisdição sobre RN)
+- **Competência**: Federal (2º grau - recursos)
+- **Estrutura**: Plenário + 3 Seções + 7 Turmas
+- **Jurisdição**: AL, CE, PB, PE, RN, SE
+
+### 🏛️ JFRN (Justiça Federal do RN)
+- **34 magistrados** federais (Varas + JEFs + Turma Recursal)
+- **6 localidades**: Natal, Mossoró, Caicó, Assú, Pau dos Ferros, Ceará-Mirim
+- **Competência**: Federal (1º grau + Recursal)
+
+### ⚖️ TJRN (Tribunal de Justiça do RN)
+- **23 magistrados** estaduais
+- **Localização**: Natal/RN
+- **Competência**: Estadual (crimes comuns, família, cível)
+
+### 🗳️ TRE-RN (Tribunal Regional Eleitoral do RN)
+- **16 magistrados** eleitorais
+- **Localização**: Natal/RN
+- **Competência**: Eleitoral (eleições, partidos, propaganda)
+
+### 👷 TRT21 (Tribunal Regional do Trabalho da 21ª Região)
+- **20 magistrados** trabalhistas
+- **4 localidades**: Natal, Mossoró, Currais Novos, Goianinha, Macau
+- **Competência**: Trabalhista (CLT, sindicatos)
+- **Descoberta especial**: 🎯 **Juíza Simone Medeiros Jalil** encontrada!
+
+### 🏆 **TOTAL: 117 magistrados** cobrindo **TODOS** os tribunais do sistema judiciário do RN
+
+```bash
+# Extrair magistrados de todos os tribunais
+node scripts/scrapers/scraper-stm-magistrados.js    # Militar (Superior)
+node scripts/scrapers/scraper-trf5-magistrados.js   # Federal 2º grau
+node scripts/scrapers/scraper-jfrn-magistrados.js   # Federal 1º grau
+node scripts/scrapers/scraper-tjrn-magistrados.js   # Estadual
+node scripts/scrapers/scraper-tre-rn-magistrados.js # Eleitoral
+node scripts/scrapers/scraper-trt21-magistrados.js  # Trabalhista
+
+# Listar magistrados por tribunal
+node scripts/scrapers/scraper-stm-magistrados.js list
+node scripts/scrapers/scraper-trf5-magistrados.js list
+node scripts/scrapers/scraper-jfrn-magistrados.js list
+node scripts/scrapers/scraper-tjrn-magistrados.js list
+node scripts/scrapers/scraper-tre-rn-magistrados.js list
+node scripts/scrapers/scraper-trt21-magistrados.js list
+
+# Comparar TODOS os tribunais
+node scripts/scrapers/scraper-stm-magistrados.js compare
+
+# Listar TODOS os magistrados do RN
+node scripts/listar-todos-juizes-rn.js stats
+```
+
+---
+
 ## **Tecnologias Utilizadas**
 
 - **Node.js 18.17 ou superior**
@@ -69,12 +127,14 @@ O servidor estará disponível em: **http://localhost:5000**
 - `PUT /api/clients/:id` - Atualizar dados de um cliente
 - `DELETE /api/clients/:id` - Remover um cliente
 
-### **Processos**
-- `GET /api/processes` - Listar todos os processos
-- `GET /api/processes/:id` - Buscar processo por ID
-- `POST /api/processes` - Criar novo processo
-- `PUT /api/processes/:id` - Atualizar processo
-- `DELETE /api/processes/:id` - Remover processo
+### **Processos (Integração DataJud CNJ)**
+- `GET /api/processos` - Listar processos salvos (com paginação)
+- `GET /api/processos/_search/:numeroProcesso` - Buscar processo na API CNJ e salvar
+- `GET /api/processos/:numeroProcesso` - Obter processo específico do banco local
+- `POST /api/processos` - Salvar processo no banco local
+- `DELETE /api/processos/:numeroProcesso` - Remover processo do banco local
+
+> 📋 **Documentação completa**: [API_PROCESSOS.md](./docs/API_PROCESSOS.md)
 
 ### **Finanças**
 - `GET /api/finances` - Listar todas as transações financeiras

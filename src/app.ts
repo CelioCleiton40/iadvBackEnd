@@ -4,22 +4,23 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import { setupSecurity } from "./middlewares/securityMiddleware";
 import { connectToDatabase } from "./config/dataBase";
-import settingsRoutes from "./routes/settingsRoutes";
+import settingsRoutes from "./routes/dashboardRoutes/settingsRoutes";
 import userRoutes from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
-import userProfileRoutes from "./routes/userProfileRoutes";
-import judgeRouter from "./routes/judgeRoutes";
-import { createProcessoRoutes } from "./routes/processoRoutes";
-import { appointmentRoutes } from "./routes/appointmentRoutes";
-import { notificationRoutes } from "./routes/notificationRoutes";
+import userProfileRoutes from "./routes/dashboardRoutes/userProfileRoutes";
+import judgeRouter from "./routes/dashboardRoutes/judgeRoutes";
+import { createProcessoRoutes } from "./routes/dashboardRoutes/processoRoutes";
+import { appointmentRoutes } from "./routes/dashboardRoutes/appointmentRoutes";
+import { notificationRoutes } from "./routes/dashboardRoutes/notificationRoutes";
 import { NotificationScheduler } from "./jobs/notificationScheduler";
 
 dotenv.config(); // Carrega variáveis do .env
 
 const app = express();
-const database = connectToDatabase();
-// Segurançareuniões executivas
-app.use(helmet()); // Protege contra cabeçalhos maliciosos
+const PORT = process.env.PORT || 3000;
+
+// Middlewares
+app.use(helmet());
 app.use(
   cors({
     origin: true,
@@ -32,47 +33,44 @@ app.use(
       "x-content-type-options",
     ],
   })
-); // Permite acesso de outros domínios
-app.use(express.json()); // Suporte para JSON
+);
+app.use(express.json());
 
-// Rate limiting para evitar brute-force e abuso
-setupSecurity(app); // Middlewares de segurança personalizados
+// Segurança
+setupSecurity(app);
 
-// Iniciar scheduler
+// Agendamento
 const scheduler = new NotificationScheduler();
 scheduler.start();
 
+// Inicialização
 async function startServer() {
   try {
-    // Conectar ao banco de dados e obter a instância
     const database = await connectToDatabase();
 
-    // Registro das rotas (após a conexão com o banco)
+    // Rotas
     app.use("/api", settingsRoutes);
     app.use("/api", userRoutes);
     app.use("/api/auth", authRoutes);
     app.use("/api", userProfileRoutes);
-    app.use("/api", judgeRouter);
+    app.use("/api/magistrados", judgeRouter);
     app.use("/api/appointments", appointmentRoutes);
     app.use("/api/notifications", notificationRoutes);
-
-    // Rota de processos usando a instância do banco
     app.use("/api/processos", createProcessoRoutes(database));
 
-    // Iniciar o servidor
+    // Inicia servidor
     app.listen(PORT, () => {
       console.log(`Servidor rodando na porta ${PORT}`);
     });
   } catch (err) {
     console.error("Erro ao conectar ao banco de dados:", err);
-    process.exit(1); // Encerra o processo se a conexão falhar
+    process.exit(1);
   }
 }
 
-// Iniciar a aplicação
 startServer();
 
-// Middleware de erros global (capture de erros não tratados)
+// Middleware global de erros
 app.use(
   (
     err: Error,
@@ -80,25 +78,11 @@ app.use(
     res: express.Response,
     next: express.NextFunction
   ) => {
-    console.error(err); // Log do erro para depuração
+    console.error(err);
     const statusCode = (err as any).statusCode || 500;
     const message = err.message || "Erro interno no servidor.";
     res.status(statusCode).json({ message });
   }
 );
-
-// Inicialização do servidor
-const PORT = process.env.PORT || 3000;
-
-connectToDatabase()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Servidor rodando na porta ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("Erro ao conectar ao banco de dados:", err);
-    process.exit(1); // Encerra o processo se a conexão falhar
-  });
 
 export default app;

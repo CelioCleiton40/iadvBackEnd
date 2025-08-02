@@ -26,6 +26,7 @@ export const loginUser = async (email: string, password: string) => {
       .db('iadvdb')
       .collection('users')
       .findOne({ email });
+    // Verifica se o usuário existe
 
     if (!user) {
       // Em produção, evite mensagens específicas para evitar ataques de enumeração de usuários

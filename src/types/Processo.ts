@@ -1,43 +1,26 @@
-
-
-
-
 export interface Processo {
   numeroProcesso: string;
+  classe: { codigo: number; nome: string };
+  sistema: { codigo: number; nome: string };
+  formato: { codigo: number; nome: string };
   tribunal: string;
   grau: string;
-  dataAjuizamento: string;
-  dataHoraUltimaAtualizacao: string;
-  classe: {
+  dataAjuizamento: string;          // ISO
+  dataHoraUltimaAtualizacao: string;// ISO
+  movimentos: MovimentoAPI[];
+  orgaoJulgador: { nome: string };
+  assuntos: { nome: string }[];
+  // … outros campos se precisar
+}
+
+export interface MovimentoAPI {
+  codigo: number;
+  nome: string;
+  dataHora: string;                 // ISO
+  complementosTabelados?: {
     codigo: number;
+    valor: number;
     nome: string;
-  };
-  sistema: {
-    codigo: number;
-    nome: string;
-  };
-  formato: {
-    codigo: number;
-    nome: string;
-  };
-  movimentos: {
-    codigo: number;
-    nome: string;
-    dataHora: string;
-    complementosTabelados?: {
-      codigo: number;
-      valor: number;
-      nome: string;
-      descricao: string;
-    }[];
-  }[];
-  orgaoJulgador: {
-    codigoMunicipioIBGE: number;
-    codigo: number;
-    nome: string;
-  };
-  assuntos: {
-    codigo: number;
-    nome: string;
+    descricao: string;
   }[];
 }

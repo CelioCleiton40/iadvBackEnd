@@ -4,10 +4,10 @@ import {
   updateProfile,
   deleteProfileController,
   fetchProfileByProfileId
-} from '../controllers/userProfileController';
-import { authMiddleware } from '../middlewares/authMiddleware'; // Middleware que verifica o token
-import { validate } from '../utils/validation'; // Função genérica de validação
-import { advogadoSchema } from '../utils/validation'; // Schema de validação do perfil
+} from '../../controllers/dashboardController/userProfileController';
+import { authMiddleware } from '../../middlewares/authMiddleware';
+import { validateRequest } from '../../middlewares/validateRequest';
+import { updateUserProfileSchema } from '../../schemas/userProfile';
 
 const router = Router();
 
@@ -25,10 +25,11 @@ router.get('/perfil', authMiddleware, async (req, res, next) => {
 
 /**
  * Rota para criar ou atualizar o perfil do usuário logado (PUT /perfil)
+ * Rick's comment: PUT com validação Zod porque dados inválidos são o inferno.
  * - Protegida pelo middleware de autenticação.
- * - Valida os dados do perfil usando o schema `advogadoSchema`.
+ * - Valida os dados do perfil usando o schema `updateUserProfileSchema`.
  */
-router.put('/perfil', authMiddleware, validate(advogadoSchema), async (req, res, next) => {
+router.put('/perfil', authMiddleware, validateRequest(updateUserProfileSchema), async (req, res, next) => {
   try {
     await updateProfile(req, res); // Chama o controlador para criar/atualizar o perfil
   } catch (error) {

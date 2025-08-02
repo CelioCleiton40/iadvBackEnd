@@ -1,5 +1,5 @@
 import { Db } from "mongodb";
-import { Processo } from "../types/Processo";
+import { Processo } from "../../types/Processo";
 
 /**
  * Insere ou atualiza um processo no banco de dados.
